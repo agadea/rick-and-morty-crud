@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model StatusType {
+  id        Int      @id @default(autoincrement())
+  type      String // 'CHARACTERS' o 'EPISODES'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  status    Status[] // Relación con Status
+}
+
+model Status {
+  id           Int         @id @default(autoincrement())
+  name         String // 'ACTIVE', 'SUSPENDED', 'CANCELLED', etc.
+  statusTypeId Int // Relación con StatusType
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now()) @updatedAt
+  statusType   StatusType  @relation(fields: [statusTypeId], references: [id])
+  character    Character[]
+  episode      Episode[]
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now()) @updatedAt
+  subcategories Subcategory[]
+}
+
+model Subcategory {
+  id         Int         @id @default(autoincrement())
+  categoryId Int
+  name       String      @unique
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @default(now()) @updatedAt
+  characters Character[]
+  episodes   Episode[]
+  category   Category    @relation(fields: [categoryId], references: [id])
+}
+
+model Character {
+  id             Int             @id @default(autoincrement())
+  name           String
+  statusId       Int // Relación con Status
+  subcategoryId  Int
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  status         Status          @relation(fields: [statusId], references: [id])
+  subcategory    Subcategory     @relation(fields: [subcategoryId], references: [id])
+  participations Participation[]
+}
+
+model Episode {
+  id             Int             @id @default(autoincrement())
+  title          String
+  statusId       Int // Relación con Status
+  duration       String
+  subcategoryId  Int
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  status         Status          @relation(fields: [statusId], references: [id])
+  subcategory    Subcategory     @relation(fields: [subcategoryId], references: [id])
+  participations Participation[]
+}
+
+model Participation {
+  id          Int       @id @default(autoincrement())
+  characterId Int
+  episodeId   Int
+  init        String
+  finish      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  character   Character @relation(fields: [characterId], references: [id])
+  episode     Episode   @relation(fields: [episodeId], references: [id])
+}
