@@ -48,6 +48,15 @@ export class CharacterService {
         },
         skip,
         take: Number(limit),
+        include: {
+          status: true,
+          subcategory: true,
+          participations: {
+            include: {
+              episode: true,
+            },
+          },
+        },
       }),
       this.prisma.character.count({
         where: {
@@ -56,6 +65,18 @@ export class CharacterService {
         },
       }),
     ]);
+
+    const results = characters.map((character) => ({
+      id: character.id,
+      name: character.name,
+      status: character.status.name,
+      species: character.subcategory.name,
+      participations: character.participations.map((participation) => ({
+        episodeTitle: participation.episode.title,
+        init: participation.init,
+        finish: participation.finish,
+      })),
+    }));
 
     const pages = Math.ceil(count / limit);
 
@@ -66,25 +87,46 @@ export class CharacterService {
         current: page,
         next:
           page < pages
-            ? `https://yourapi.com/character?page=${page + 1}`
+            ? `https://localhost:3000/character?page=${page + 1}`
             : null,
         prev:
-          page > 1 ? `https://yourapi.com/character?page=${page - 1}` : null,
+          page > 1 ? `https://localhost:3000/character?page=${page - 1}` : null,
       },
-      results: characters,
+      results: results,
     };
   }
 
   async findOne(id: number) {
     const character = await this.prisma.character.findUnique({
       where: { id },
+      include: {
+        status: true,
+        subcategory: true,
+        participations: {
+          include: {
+            episode: true,
+          },
+        },
+      },
     });
 
     if (!character) {
       throw new NotFoundException('Character not found');
     }
 
-    return character;
+    const result = {
+      id: character.id,
+      name: character.name,
+      status: character.status.name,
+      species: character.subcategory.name,
+      participations: character.participations.map((participation) => ({
+        episodeTitle: participation.episode.title,
+        init: participation.init,
+        finish: participation.finish,
+      })),
+    };
+
+    return result;
   }
 
   async update(id: number, data: UpdateCharacterDto) {

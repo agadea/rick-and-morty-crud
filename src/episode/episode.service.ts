@@ -38,7 +38,13 @@ export class EpisodeService {
         skip,
         take: limit,
         include: {
+          status: true,
           subcategory: true,
+          participations: {
+            include: {
+              character: true,
+            },
+          },
         },
       }),
       this.prisma.episode.count({
@@ -50,29 +56,64 @@ export class EpisodeService {
 
     const pages = Math.ceil(count / limit);
 
+    const results = episodes.map((episode) => ({
+      id: episode.id,
+      title: episode.title,
+      status: episode.status.name,
+      subcategory: episode.subcategory.name,
+      participations: episode.participations.map((participation) => ({
+        characterName: participation.character.name,
+        init: participation.init,
+        finish: participation.finish,
+      })),
+    }));
+
     return {
       info: {
         count,
         pages,
         next:
-          page < pages ? `https://yourapi.com/episode?page=${page + 1}` : null,
-        prev: page > 1 ? `https://yourapi.com/episode?page=${page - 1}` : null,
+          page < pages
+            ? `https://localhost:3000/episode?page=${page + 1}`
+            : null,
+        prev:
+          page > 1 ? `https://localhost:3000/episode?page=${page - 1}` : null,
       },
-      results: episodes,
+      results,
     };
   }
 
   async findOne(id: number) {
     const episode = await this.prisma.episode.findUnique({
       where: { id },
-      include: { subcategory: true },
+      include: {
+        status: true,
+        subcategory: true,
+        participations: {
+          include: {
+            character: true,
+          },
+        },
+      },
     });
 
     if (!episode) {
       throw new NotFoundException('Episode not found');
     }
 
-    return episode;
+    const result = {
+      id: episode.id,
+      title: episode.title,
+      status: episode.status.name,
+      subcategory: episode.subcategory.name,
+      participations: episode.participations.map((participation) => ({
+        characterName: participation.character.name,
+        init: participation.init,
+        finish: participation.finish,
+      })),
+    };
+
+    return result;
   }
 
   async update(id: number, data: UpdateEpisodeDto) {

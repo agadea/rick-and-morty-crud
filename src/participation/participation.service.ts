@@ -36,7 +36,7 @@ export class ParticipationService {
       ...(finish && { finish: { lte: finish } }),
     };
 
-    const [participation, count] = await this.prisma.$transaction([
+    const [participations, count] = await this.prisma.$transaction([
       this.prisma.participation.findMany({
         skip,
         take: limit,
@@ -53,6 +53,14 @@ export class ParticipationService {
 
     const pages = Math.ceil(count / limit);
 
+    const results = participations.map((participation) => ({
+      id: participation.id,
+      characterName: participation.character.name,
+      episodeTitle: participation.episode.title,
+      init: participation.init,
+      finish: participation.finish,
+    }));
+
     return {
       info: {
         count,
@@ -60,14 +68,14 @@ export class ParticipationService {
         current: page,
         next:
           page < pages
-            ? `https://yourapi.com/participation?page=${page + 1}`
+            ? `https://localhost:3000/participation?page=${page + 1}`
             : null,
         prev:
           page > 1
-            ? `https://yourapi.com/participation?page=${page - 1}`
+            ? `https://localhost:3000/participation?page=${page - 1}`
             : null,
       },
-      results: participation,
+      results: results,
     };
   }
 

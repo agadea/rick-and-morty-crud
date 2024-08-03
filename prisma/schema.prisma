@@ -15,16 +15,16 @@ datasource db {
 
 model StatusType {
   id        Int      @id @default(autoincrement())
-  type      String // 'CHARACTERS' o 'EPISODES'
+  type      String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
-  status    Status[] // Relación con Status
+  status    Status[]
 }
 
 model Status {
   id           Int         @id @default(autoincrement())
-  name         String // 'ACTIVE', 'SUSPENDED', 'CANCELLED', etc.
-  statusTypeId Int // Relación con StatusType
+  name         String
+  statusTypeId Int
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @default(now()) @updatedAt
   statusType   StatusType  @relation(fields: [statusTypeId], references: [id])
@@ -54,7 +54,7 @@ model Subcategory {
 model Character {
   id             Int             @id @default(autoincrement())
   name           String
-  statusId       Int // Relación con Status
+  statusId       Int
   subcategoryId  Int
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @default(now()) @updatedAt
@@ -66,7 +66,7 @@ model Character {
 model Episode {
   id             Int             @id @default(autoincrement())
   title          String
-  statusId       Int // Relación con Status
+  statusId       Int
   duration       String
   subcategoryId  Int
   createdAt      DateTime        @default(now())
